@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+}
+
+group = "tk.frostbit"
+archivesBaseName = "json"
+version = "20180813"
+
+sourceCompatibility = "1.6"
+
+def srcPackage = "org.json"
+def dstPackage = "tk.frostbit.org.json"
+
+def sourcesDir = new File(buildDir, "processedSources")
+
+sourceSets {
+    main {
+        java.srcDirs = [sourcesDir]
+    }
+}
+
+task processSources(type: Sync) {
+    destinationDir = sourcesDir
+
+    from(projectDir) {
+        into dstPackage.replace('.', '/')
+
+        include 'JSONArray.java'
+        include 'JSONException.java'
+        include 'JSONObject.java'
+        include 'JSONPointer.java'
+        include 'JSONPointerException.java'
+        include 'JSONPropertyIgnore.java'
+        include 'JSONPropertyName.java'
+        include 'JSONString.java'
+        include 'JSONStringer.java'
+        include 'JSONTokener.java'
+        include 'JSONWriter.java'
+
+        filter { line ->
+            line.replace("package $srcPackage", "package $dstPackage")
+                    .replace("import $srcPackage", "import $dstPackage")
+        }
+    }
+}
+
+compileJava.dependsOn processSources
+
+jar {
+    manifest.attributes "Automatic-Module-Name": "tk.frostbit.org.json"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+
+assemble.dependsOn sourcesJar
