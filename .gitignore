@@ -8,3 +8,6 @@
 # Gradle build artifacts
 /.gradle
 /build
+
+# Local properties
+/gradle.properties

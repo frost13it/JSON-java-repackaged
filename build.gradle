@@ -1,17 +1,19 @@
 plugins {
     id 'java'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.4'
 }
 
 group = "tk.frostbit"
 archivesBaseName = "json"
 version = "20180813"
 
-sourceCompatibility = "1.6"
-
 def srcPackage = "org.json"
 def dstPackage = "tk.frostbit.org.json"
 
 def sourcesDir = new File(buildDir, "processedSources")
+
+sourceCompatibility = "1.6"
 
 sourceSets {
     main {
@@ -56,3 +58,58 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 }
 
 assemble.dependsOn sourcesJar
+
+javadoc {
+    failOnError = false
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc"
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = archivesBaseName
+
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = "JSON in Java (repackaged)"
+                url = "https://github.com/frost13it/JSON-java-repackaged"
+                licenses {
+                    license {
+                        name = "The JSON License"
+                        url = "http://json.org/license.html"
+                    }
+                }
+                scm {
+                    url = "https://github.com/frost13it/JSON-java-repackaged"
+                }
+            }
+        }
+    }
+}
+
+task install(dependsOn: publishToMavenLocal)
+
+assemble.dependsOn javadocJar
+
+bintray {
+    user = bintrayUser
+    key = bintrayKey
+    publications = ["maven"]
+
+    pkg {
+        repo = "3rd-party"
+        name = "org.json"
+
+        version {
+            name = project.version
+            vcsTag = name
+        }
+    }
+}
